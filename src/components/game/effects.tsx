@@ -1,8 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const PETALS = ["🌼", "🌸", "🏵️", "✨"];
 
 export function Petals({ count = 14 }: { count?: number }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const items = useMemo(
     () =>
       Array.from({ length: count }, (_, i) => ({
@@ -15,6 +18,8 @@ export function Petals({ count = 14 }: { count?: number }) {
       })),
     [count],
   );
+
+  if (!mounted) return null;
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
