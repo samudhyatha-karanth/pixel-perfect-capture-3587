@@ -224,7 +224,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       const next = GAME_ORDER[idx + 1];
       const unlockedLocations = next && !s.unlockedLocations.includes(next) ? [...s.unlockedLocations, next] : s.unlockedLocations;
       if (next && !s.unlockedLocations.includes(next)) {
-        result.unlocked = LOCATIONS.find((l) => l.id === next);
+        const loc = LOCATIONS.find((l) => l.id === next);
+        if (loc) result.unlocked = loc;
       }
 
       const info = LOCATIONS.find((l) => l.id === id)!;
