@@ -108,30 +108,31 @@ function sanitize(raw: unknown): GameState {
     Array.isArray(v) ? (v.filter((x) => GAME_ORDER.includes(x as GameId)) as GameId[]) : [];
   const strings = (v: unknown): string[] => (Array.isArray(v) ? v.filter((x) => typeof x === "string") : []);
   const scores: Partial<Record<GameId, number>> = {};
-  if (r.highScores && typeof r.highScores === "object") {
+  const rawScores = r["highScores"];
+  if (rawScores && typeof rawScores === "object") {
     for (const id of GAME_ORDER) {
-      const v = (r.highScores as Record<string, unknown>)[id];
+      const v = (rawScores as Record<string, unknown>)[id];
       if (typeof v === "number" && Number.isFinite(v)) scores[id] = Math.max(0, Math.round(v));
     }
   }
-  const settings = (r.settings ?? {}) as Record<string, unknown>;
-  const unlocked = ids(r.unlockedLocations);
+  const settings = (r["settings"] ?? {}) as Record<string, unknown>;
+  const unlocked = ids(r["unlockedLocations"]);
+  const name = r["playerName"];
+  const points = r["totalBlessingPoints"];
   return {
-    playerName: typeof r.playerName === "string" ? r.playerName.slice(0, 18) : "",
+    playerName: typeof name === "string" ? name.slice(0, 18) : "",
     totalBlessingPoints:
-      typeof r.totalBlessingPoints === "number" && Number.isFinite(r.totalBlessingPoints)
-        ? Math.max(0, Math.round(r.totalBlessingPoints))
-        : 0,
-    completedGames: ids(r.completedGames),
-    achievements: strings(r.achievements),
-    collection: strings(r.collection),
+      typeof points === "number" && Number.isFinite(points) ? Math.max(0, Math.round(points)) : 0,
+    completedGames: ids(r["completedGames"]),
+    achievements: strings(r["achievements"]),
+    collection: strings(r["collection"]),
     unlockedLocations: unlocked.length ? Array.from(new Set(["flower" as GameId, ...unlocked])) : ["flower"],
     highScores: scores,
     settings: {
-      sound: settings.sound !== false,
-      effects: settings.effects !== false,
+      sound: settings["sound"] !== false,
+      effects: settings["effects"] !== false,
     },
-    seenStory: r.seenStory === true,
+    seenStory: r["seenStory"] === true,
   };
 }
 
