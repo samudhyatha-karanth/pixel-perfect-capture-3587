@@ -46,4 +46,10 @@ export function GameFrame({
 export type MiniGameProps = {
   onExit: () => void;
   onFinish: (score: number) => void;
+  /** 1 = easy … 4 = festival legend */
+  difficulty?: number;
+  /** extra seconds granted by a power-up */
+  extraTime?: number;
+  /** emoji of the currently worn Mushak costume */
+  hero?: string;
 };
