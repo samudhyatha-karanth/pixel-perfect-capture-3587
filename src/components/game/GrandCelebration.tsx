@@ -1,5 +1,5 @@
 import { motion } from "motion/react";
-import { useGame, levelFor } from "@/lib/game-state";
+import { LEVELS, levelFor, totalStars, useGame } from "@/lib/game-state";
 import { Petals, DiyaRow } from "./effects";
 import { GameButton } from "./ui";
 
@@ -16,25 +16,29 @@ export function GrandCelebration({ onMenu }: { onMenu: () => void }) {
         className="relative z-10 w-full max-w-sm"
       >
         <DiyaRow count={9} />
-        <div className="mt-6 text-6xl">🎆🐭🎆</div>
-        <h1 className="mt-4 text-3xl font-extrabold text-festival">The Grand Celebration!</h1>
+        <div className="mt-6 text-6xl">🏆🐭🎆</div>
+        <h1 className="mt-4 text-3xl font-extrabold text-festival">Festival Champion!</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          {state.playerName || "Festival Explorer"}, the pandal glows, the modaks are steaming and the dhol is thundering.
-          Ganpati Bappa Morya!
+          {state.playerName || "Festival Explorer"}, all {LEVELS.length} challenges are cleared. The pandal glows, the
+          modaks are steaming and the dhol is thundering. Ganpati Bappa Morya!
         </p>
 
-        <div className="surface mt-6 grid grid-cols-3 gap-2 rounded-3xl p-4 text-sm">
+        <div className="surface mt-6 grid grid-cols-4 gap-2 rounded-3xl p-4 text-sm">
           <div>
-            <p className="text-xl font-extrabold">{state.totalBlessingPoints}</p>
-            <p className="text-[0.65rem] text-muted-foreground">Points</p>
+            <p className="text-lg font-extrabold">{state.totalBlessingPoints}</p>
+            <p className="text-[0.6rem] text-muted-foreground">Points</p>
           </div>
           <div>
-            <p className="text-xl font-extrabold">{levelFor(state.totalBlessingPoints)}</p>
-            <p className="text-[0.65rem] text-muted-foreground">Level</p>
+            <p className="text-lg font-extrabold">{levelFor(state.totalBlessingPoints)}</p>
+            <p className="text-[0.6rem] text-muted-foreground">Level</p>
           </div>
           <div>
-            <p className="text-xl font-extrabold">{state.collection.length}</p>
-            <p className="text-[0.65rem] text-muted-foreground">Treasures</p>
+            <p className="text-lg font-extrabold">{totalStars(state)}</p>
+            <p className="text-[0.6rem] text-muted-foreground">Stars</p>
+          </div>
+          <div>
+            <p className="text-lg font-extrabold">{state.collection.length}</p>
+            <p className="text-[0.6rem] text-muted-foreground">Treasures</p>
           </div>
         </div>
 

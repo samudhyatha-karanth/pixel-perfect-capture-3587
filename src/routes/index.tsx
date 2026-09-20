@@ -3,10 +3,14 @@ import { useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   GameProvider,
-  LOCATIONS,
+  costumeEmoji,
+  levelInfo,
+  modifiersFor,
+  randomEvent,
   useGame,
   type FinishResult,
-  type GameId,
+  type GameKind,
+  type SurpriseEvent,
 } from "@/lib/game-state";
 import { Splash } from "@/components/game/Splash";
 import { Onboarding } from "@/components/game/Onboarding";
@@ -20,6 +24,10 @@ import { ModakMaster } from "@/components/games/ModakMaster";
 import { PandalBuilder } from "@/components/games/PandalBuilder";
 import { EcoChallenge } from "@/components/games/EcoChallenge";
 import { DholRhythm } from "@/components/games/DholRhythm";
+import { FestivalDelivery } from "@/components/games/FestivalDelivery";
+import { TreasureHunt } from "@/components/games/TreasureHunt";
+import { MemoryChallenge } from "@/components/games/MemoryChallenge";
+import { ObstacleRun } from "@/components/games/ObstacleRun";
 import type { MiniGameProps } from "@/components/games/GameFrame";
 
 export const Route = createFileRoute("/")({
@@ -29,12 +37,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Help Mushak prepare a grand Ganesh Chaturthi celebration in VighnaVerse: five festival mini-games, blessing points, treasures and a grand finale.",
+          "Help Mushak prepare a grand Ganesh Chaturthi celebration in VighnaVerse: ten levels across four worlds, boss challenges, power-ups, quests and a champion finale.",
       },
       { property: "og:title", content: "VighnaVerse — Festival Adventure Game" },
       {
         property: "og:description",
-        content: "Catch marigolds, steam modaks, build the pandal, keep the festival green and master the dhol beat.",
+        content: "Catch marigolds, steam modaks, build the pandal, hunt treasures and become the Festival Champion.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -49,22 +57,29 @@ export const Route = createFileRoute("/")({
 
 type Screen = "splash" | "name" | "story" | "menu" | "map" | "play" | "result" | "grand";
 
-const GAME_COMPONENTS: Record<GameId, (p: MiniGameProps) => React.JSX.Element> = {
+const GAME_COMPONENTS: Record<GameKind, (p: MiniGameProps) => React.JSX.Element> = {
   flower: FlowerRush,
   modak: ModakMaster,
   pandal: PandalBuilder,
   eco: EcoChallenge,
   dhol: DholRhythm,
+  delivery: FestivalDelivery,
+  treasure: TreasureHunt,
+  memory: MemoryChallenge,
+  obstacle: ObstacleRun,
+  champion: ObstacleRun,
 };
 
 function VighnaVerse() {
-  const { state, ready, setPlayerName, markStorySeen, finishGame } = useGame();
+  const { state, ready, setPlayerName, markStorySeen, finishLevel } = useGame();
   const [screen, setScreen] = useState<Screen>("splash");
-  const [active, setActive] = useState<GameId>("flower");
+  const [activeLevel, setActiveLevel] = useState(1);
+  const [event, setEvent] = useState<SurpriseEvent | null>(null);
   const [result, setResult] = useState<FinishResult | null>(null);
 
-  const location = LOCATIONS.find((l) => l.id === active)!;
-  const ActiveGame = GAME_COMPONENTS[active];
+  const info = levelInfo(activeLevel);
+  const ActiveGame = GAME_COMPONENTS[info.kind];
+  const mods = modifiersFor(null, event);
 
   const afterSplash = () => {
     if (!ready) return;
@@ -76,9 +91,14 @@ function VighnaVerse() {
     setScreen("map");
   };
 
+  const enterLevel = (num: number) => {
+    setActiveLevel(num);
+    setEvent(randomEvent());
+    setScreen("play");
+  };
+
   const handleFinish = (score: number) => {
-    const res = finishGame(active, score);
-    setResult(res);
+    setResult(finishLevel(activeLevel, score, mods, null));
     setScreen("result");
   };
 
@@ -100,23 +120,23 @@ function VighnaVerse() {
       case "menu":
         return <MainMenu onPlay={() => setScreen(state.seenStory ? "map" : "story")} />;
       case "map":
+        return <WorldMap onBack={() => setScreen("menu")} onEnter={enterLevel} />;
+      case "play":
         return (
-          <WorldMap
-            onBack={() => setScreen("menu")}
-            onEnter={(id) => {
-              setActive(id);
-              setScreen("play");
-            }}
+          <ActiveGame
+            onExit={() => setScreen("map")}
+            onFinish={handleFinish}
+            difficulty={info.difficulty}
+            extraTime={mods.extraTime}
+            hero={costumeEmoji(state)}
           />
         );
-      case "play":
-        return <ActiveGame onExit={() => setScreen("map")} onFinish={handleFinish} />;
       case "result":
         return result ? (
           <ResultScreen
-            location={location}
             result={result}
-            onReplay={() => setScreen("play")}
+            event={event}
+            onReplay={() => enterLevel(activeLevel)}
             onMap={() => setScreen("map")}
             onCelebrate={() => setScreen("grand")}
           />
@@ -129,7 +149,7 @@ function VighnaVerse() {
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={screen + (screen === "play" ? active : "")}
+        key={screen + (screen === "play" ? activeLevel : "")}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
